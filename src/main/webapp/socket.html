@@ -39,7 +39,6 @@
         webSocket.onopen = function(event) {
             // For reasons I can't determine, onopen gets called twice
             // and the first time event.data is undefined.
-            // Leave a comment if you know the answer.
             if (event.data === undefined)
                 return;
 

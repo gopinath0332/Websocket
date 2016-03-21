@@ -1,0 +1,136 @@
+<html>
+
+<head>
+    <style type="text/css">
+    table#gridtable {
+        font-family: verdana, arial, sans-serif;
+        font-size: 11px;
+        color: #333333;
+        border-width: 1px;
+        border-color: #666666;
+        border-collapse: collapse;
+    }
+    
+    table#gridtable thead {
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #dedede;
+        font-weight: bold;
+    }
+    
+    table#gridtable td {
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #ffffff;
+    }
+    </style>
+    <script type="text/javascript">
+    var websocket;
+
+    function opensocket() {
+        var dom = document.getElementById("status");
+        if (websocket != undefined && websocket.readyState != WebSocket.CLOSED) {
+            websocket.close();
+            dom.innerHTML = "Connection already opened";
+            return;
+        }
+        websocket = new WebSocket("ws://localhost:8080/websocketsample/signupecho");
+        websocket.onmessage = updateTable;
+        websocket.onopen = function(e) {
+            dom.innerHTML = "Connection establlished.";
+        };
+        websocket.onclose = function() {
+            dom.innerHTML = "Connection closed";
+        };
+    }
+
+    function updateTable(response) {
+        try {
+            var data = response.data;
+            data = JSON.parse(data);
+            var row = document.createElement("tr");
+
+            var fname = document.createElement("td");
+            fname.innerHTML = data.fname;
+            row.appendChild(fname);
+
+            var lname = document.createElement("td");
+            lname.innerHTML = data.lname;
+            row.appendChild(lname);
+
+            var number = document.createElement("td");
+            number.innerHTML = data.number;
+            row.appendChild(number);
+
+            document.getElementById("gridtable").tBodies[0].appendChild(row);
+        } catch (e) {
+            console.error("Error in updating table::", e);
+        }
+    }
+
+    function closeSocket() {
+        websocket.close();
+    }
+
+    function sendData() {
+        var form = document.forms[0];
+        var data = {};
+        data["fname"] = form.fname.value;
+        data["lname"] = form.lname.value;
+        data["number"] = form.number.value;
+
+        websocket.send(JSON.stringify(data));
+        form.reset();
+    }
+    </script>
+</head>
+
+<body>
+    <form>
+        <table>
+            <tr>
+                <td>First Name:</td>
+                <td>
+                    <input type="text" name="fname"></input>
+                </td>
+            </tr>
+            <tr>
+                <td>Last Name:</td>
+                <td>
+                    <input type="text" name="lname"></input>
+                </td>
+            </tr>
+            <tr>
+                <td>Phone Number:</td>
+                <td>
+                    <input type="text" name="number"></input>
+                </td>
+            </tr>
+        </table>
+    </form>
+    <button onclick="opensocket()">Connect</button>
+    <button onclick="sendData()">Send</button>
+    <button onclick="closeSocket()">Terminate</button>
+    <br>
+    <br>
+    <div id="status">
+    </div>
+    <br>
+    <br>
+    <table id="gridtable">
+        <thead>
+            <tr>
+                <td>First Name</td>
+                <td>Last Name</td>
+                <td>Phone Number</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>
+
+</html>
